@@ -3,7 +3,7 @@
 export OMP_NUM_THREADS=1
 
 : ${NUM_GPUS:=1}
-: ${BS:=128}
+: ${BS:=64}
 : ${GRAD_ACCUMULATION:=1}
 : ${OUTPUT_DIR:="./output"}
 : ${AMP:=true}
