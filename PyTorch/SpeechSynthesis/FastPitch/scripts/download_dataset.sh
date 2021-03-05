@@ -10,7 +10,7 @@ if [ ! -d ${DATA_DIR} ]; then
   echo "Downloading ${LJS_ARCH} ..."
   wget -q ${LJS_URL}
   echo "Extracting ${LJS_ARCH} ..."
-  unzip ${LJS_ARCH}
+  unzip ${LJS_ARCH} -d ${DATA_DIR}
   rm -f ${LJS_ARCH}
 fi
 
