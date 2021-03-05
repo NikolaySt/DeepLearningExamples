@@ -3,14 +3,14 @@
 set -e
 
 DATA_DIR="LJSpeech-1.1"
-LJS_ARCH="LJSpeech-1.1.tar.bz2"
-LJS_URL="http://data.keithito.com/data/speech/${LJS_ARCH}"
+LJS_ARCH="JDVoice_HarryPotter.zip"
+LJS_URL="https://orionscloud.blob.core.windows.net/bb1e7e62-03a5-4d90-b15a-abb60ad55250/Dataset/${LJS_ARCH}"
 
 if [ ! -d ${DATA_DIR} ]; then
   echo "Downloading ${LJS_ARCH} ..."
   wget -q ${LJS_URL}
   echo "Extracting ${LJS_ARCH} ..."
-  tar jxvf ${LJS_ARCH}
+  unzip ${LJS_ARCH}
   rm -f ${LJS_ARCH}
 fi
 
