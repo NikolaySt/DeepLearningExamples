@@ -3,7 +3,7 @@
 set -e
 
 DATA_DIR="LJSpeech-1.1"
-LJS_ARCH="JDVoice_HarryPotter.zip"
+LJS_ARCH="jd_voice_harry_potter_v1.zip"
 LJS_URL="https://orionscloud.blob.core.windows.net/bb1e7e62-03a5-4d90-b15a-abb60ad55250/Dataset/${LJS_ARCH}"
 
 if [ ! -d ${DATA_DIR} ]; then
