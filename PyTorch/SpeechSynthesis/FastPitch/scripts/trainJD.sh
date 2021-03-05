@@ -25,7 +25,7 @@ python -m torch.distributed.launch --nproc_per_node ${NUM_GPUS} train.py \
     --cuda \
     -o "$OUTPUT_DIR/" \
     --log-file "$OUTPUT_DIR/nvlog.json" \
-    --dataset-path LJSpeech-1.1 \
+    --dataset-path JDVoice_HarryPotter \
     --training-files filelists/ljs_mel_dur_pitch_text_train_filelist.txt \
     --validation-files filelists/ljs_mel_dur_pitch_text_test_filelist.txt \
     --pitch-mean-std-file LJSpeech-1.1/pitch_char_stats__ljs_audio_text_train_filelist.json \
