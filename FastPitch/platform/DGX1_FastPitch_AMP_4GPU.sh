@@ -6,10 +6,10 @@ python -m torch.distributed.launch --nproc_per_node 4 train.py \
     --cuda \
     -o ./output/ \
     --log-file output/nvlog.json \
-    --dataset-path LJSpeech-1.1 \
-    --training-files filelists/ljs_mel_dur_pitch_text_train_filelist.txt \
-    --validation-files filelists/ljs_mel_dur_pitch_text_test_filelist.txt \
-    --pitch-mean-std-file LJSpeech-1.1/pitch_char_stats__ljs_audio_text_train_filelist.json \
+    --dataset-path dataset \
+    --training-files dataset/mel_dur_pitch_text_train_filelist.txt \
+    --validation-files dataset/mel_dur_pitch_text_test_filelist.txt \
+    --pitch-mean-std-file dataset/pitch_char_stats__audio_text_train_filelist.json \
     --epochs 1500 \
     --epochs-per-checkpoint 100 \
     --warmup-steps 1000 \

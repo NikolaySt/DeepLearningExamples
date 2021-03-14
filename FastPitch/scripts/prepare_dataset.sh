@@ -11,7 +11,7 @@ for FILELIST in audio_text_train_filelist.txt \
     python extract_mels.py \
         --cuda \
         --dataset-path ${DATA_DIR} \
-        --wav-text-filelist filelists/${FILELIST} \
+        --wav-text-filelist ${DATA_DIR}/${FILELIST} \
         --batch-size 256 \
         --extract-mels \
         --extract-durations \
