@@ -30,7 +30,6 @@ python -m torch.distributed.launch --nproc_per_node ${NUM_GPUS} train.py \
     --validation-files dataset/mel_dur_pitch_text_test_filelist.txt \
     --pitch-mean-std-file dataset/pitch_char_stats__audio_text_train_filelist.json \
     --epochs ${EPOCHS} \
-    --epochs-per-checkpoint 5 \
     --warmup-steps 1000 \
     -lr 0.1 \
     -bs ${BS} \
