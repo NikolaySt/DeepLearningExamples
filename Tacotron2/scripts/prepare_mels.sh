@@ -2,16 +2,16 @@
 
 set -e
 
-DATADIR="LJSpeech-1.1"
-FILELISTSDIR="filelists"
+DATADIR="dataset"
+FILELISTSDIR="dataset"
 
-TESTLIST="$FILELISTSDIR/ljs_audio_text_test_filelist.txt"
-TRAINLIST="$FILELISTSDIR/ljs_audio_text_train_filelist.txt"
-VALLIST="$FILELISTSDIR/ljs_audio_text_val_filelist.txt"
+TESTLIST="$FILELISTSDIR/audio_text_test_filelist.txt"
+TRAINLIST="$FILELISTSDIR/audio_text_train_filelist.txt"
+VALLIST="$FILELISTSDIR/audio_text_val_filelist.txt"
 
-TESTLIST_MEL="$FILELISTSDIR/ljs_mel_text_test_filelist.txt"
-TRAINLIST_MEL="$FILELISTSDIR/ljs_mel_text_train_filelist.txt"
-VALLIST_MEL="$FILELISTSDIR/ljs_mel_text_val_filelist.txt"
+TESTLIST_MEL="$FILELISTSDIR/mel_text_test_filelist.txt"
+TRAINLIST_MEL="$FILELISTSDIR/mel_text_train_filelist.txt"
+VALLIST_MEL="$FILELISTSDIR/mel_text_val_filelist.txt"
 
 mkdir -p "$DATADIR/mels"
 if [ $(ls $DATADIR/mels | wc -l) -ne 13100 ]; then
