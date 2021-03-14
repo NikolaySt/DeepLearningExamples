@@ -81,7 +81,7 @@ def parse_args(parser):
     training = parser.add_argument_group('training setup')
     training.add_argument('--epochs', type=int, required=True,
                           help='Number of total epochs to run')
-    training.add_argument('--epochs-per-checkpoint', type=int, default=50,
+    training.add_argument('--epochs-per-checkpoint', type=int, default=5,
                           help='Number of epochs per checkpoint')
     training.add_argument('--checkpoint-path', type=str, default='',
                           help='Checkpoint path to resume training')
@@ -217,7 +217,7 @@ def save_checkpoint(model, optimizer, epoch, config, amp_run, output_dir, model_
         if amp_run:
             checkpoint['amp'] = amp.state_dict()
 
-        checkpoint_filename = "checkpoint_{}_{}.pt".format(model_name, epoch)
+        checkpoint_filename = "checkpoint_{}.pt".format(model_name)
         checkpoint_path = os.path.join(output_dir, checkpoint_filename)
         print("Saving model and optimizer state at epoch {} to {}".format(
             epoch, checkpoint_path))
