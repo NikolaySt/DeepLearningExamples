@@ -516,7 +516,7 @@ def main():
             (epoch % args.epochs_per_checkpoint == 0) and args.local_rank == 0):
 
             checkpoint_path = os.path.join(
-                args.output, f"FastPitch_checkpoint_{epoch}.pt")
+                args.output, f"FastPitch_checkpoint.pt")
             save_checkpoint(args.local_rank, model, ema_model, optimizer, epoch,
                             total_iter, model_config, args.amp, checkpoint_path)
         logger.flush()
@@ -537,7 +537,7 @@ def main():
     if (epoch > 0 and args.epochs_per_checkpoint > 0 and
         (epoch % args.epochs_per_checkpoint != 0) and args.local_rank == 0):
         checkpoint_path = os.path.join(
-            args.output, f"FastPitch_checkpoint_{epoch}.pt")
+            args.output, f"FastPitch_checkpoint.pt")
         save_checkpoint(args.local_rank, model, ema_model, optimizer, epoch,
                         total_iter, model_config, args.amp, checkpoint_path)
 
