@@ -410,7 +410,7 @@ def main():
     if args.resume_from_last:
         args.checkpoint_path = get_last_checkpoint_filename(args.output, model_name)
 
-    if args.checkpoint_path is not "":
+    if args.checkpoint_path != "":
         load_checkpoint(model, optimizer, start_epoch, model_config,
                         args.amp, args.checkpoint_path, local_rank)
 
