@@ -161,8 +161,8 @@ def last_checkpoint(output):
             return True
 
     saved = sorted(
-        glob.glob(f'{output}/FastPitch_checkpoint_*.pt'),
-        key=lambda f: int(re.search('_(\d+).pt', f).group(1)))
+        glob.glob(f'{output}/FastPitch_checkpoint*.pt'),
+        key=lambda f: int(re.search('(\d+).pt', f).group(1)))
 
     if len(saved) >= 1 and not corrupted(saved[-1]):
         return saved[-1]
