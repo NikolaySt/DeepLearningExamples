@@ -160,14 +160,10 @@ def last_checkpoint(output):
             print(f'WARNING: Cannot load {fpath}')
             return True
 
-    saved = sorted(
-        glob.glob(f'{output}/FastPitch_checkpoint*.pt'),
-        key=lambda f: int(re.search('(\d+).pt', f).group(1)))
+    fpath = f'{output}/FastPitch_checkpoint.pt'
 
-    if len(saved) >= 1 and not corrupted(saved[-1]):
-        return saved[-1]
-    elif len(saved) >= 2:
-        return saved[-2]
+    if not corrupted(fpath):
+        return fpath
     else:
         return None
 
