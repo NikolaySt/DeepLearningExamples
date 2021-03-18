@@ -43,8 +43,7 @@ import dllogger as DLLogger
 from dllogger import StdOutBackend, JSONStreamBackend, Verbosity
 
 from common import utils
-from common.tb_dllogger import (init_inference_metadata, stdout_metric_format,
-                                unique_log_fpath)
+from common.tb_dllogger import (init_inference_metadata, stdout_metric_format)
 from common.text.text_processing import TextProcessing
 from pitch_transform import pitch_transform_custom
 from waveglow import model as glow
