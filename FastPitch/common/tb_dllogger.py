@@ -54,20 +54,6 @@ class TBLogger:
                 self.log_value(step, f'grad_{stat}', getattr(np, stat)(norms),
                                stat=stat)
 
-
-def unique_log_fpath(log_fpath):
-
-    if not os.path.isfile(log_fpath):
-        return log_fpath
-
-    # Avoid overwriting old logs
-    saved = sorted([int(re.search('\.(\d+)', f).group(1))
-                    for f in glob.glob(f'{log_fpath}.*')])
-
-    log_num = (saved[-1] if saved else 0) + 1
-    return f'{log_fpath}.{log_num}'
-
-
 def stdout_step_format(step):
     if isinstance(step, str):
         return step
@@ -94,7 +80,7 @@ def init(log_fpath, log_dir, enabled=True, tb_subsets=[], **tb_kw):
 
     if enabled:
         backends = [JSONStreamBackend(Verbosity.DEFAULT,
-                                      unique_log_fpath(log_fpath)),
+                                      log_fpath),
                     StdOutBackend(Verbosity.VERBOSE,
                                   step_format=stdout_step_format,
                                   metric_format=stdout_metric_format)]
