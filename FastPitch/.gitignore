@@ -1,5 +1,6 @@
 runs*/
-LJSpeech-1.1/
+dataset/
+pretrained_models/
 output*
 scripts_joc/
 tests/
