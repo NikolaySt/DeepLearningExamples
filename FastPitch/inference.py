@@ -138,7 +138,7 @@ def load_and_setup_model(model_name, parser, checkpoint, amp, device,
                              jitable=jitable)
 
     if checkpoint is not None:
-        checkpoint_data = torch.load(checkpoint)
+        checkpoint_data = torch.load(checkpoint, map_location = device)
         status = ''
 
         if 'state_dict' in checkpoint_data:
@@ -244,11 +244,11 @@ def build_pitch_transformation(args):
 
 class MeasureTime(list):
     def __enter__(self):
-        torch.cuda.synchronize()
+        #torch.cuda.synchronize()
         self.t0 = time.perf_counter()
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        torch.cuda.synchronize()
+        #torch.cuda.synchronize()
         self.append(time.perf_counter() - self.t0)
 
     def __add__(self, other):
