@@ -42,8 +42,8 @@ write("f_audio.wav", sampling_rate, audio_data)
 torch.cuda.empty_cache()
 
 with torch.no_grad():
-    _, mel_output, *_ = tacotron2.infer(batch['text'], batch['text_lens'])
-    audios = waveglow.infer(mel_output)
+    mel, mel_lens, *_  = tacotron2.infer(batch['text'], batch['text_lens'])
+    audios = waveglow.infer(mel)
     audios = denoiser(audios.float(), strength=0.01).squeeze(1)
     audio_data = audios[0].data.cpu().numpy()
 
