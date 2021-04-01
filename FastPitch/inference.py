@@ -43,7 +43,8 @@ from torch.nn.utils.rnn import pad_sequence
 import dllogger as DLLogger
 from dllogger import StdOutBackend, JSONStreamBackend, Verbosity
 
-sys.path.append(abspath(dirname(__file__)+'/../'))
+# enabling comman discovery
+sys.path.append(abspath(dirname(__file__)+'./../'))
 from common import utils
 from common.tb_dllogger import (init_inference_metadata, stdout_metric_format)
 from common.text.text_processing import TextProcessing
