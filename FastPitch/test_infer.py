@@ -213,7 +213,8 @@ def main():
     model = fastpitch_model(device, "output/FastPitch_checkpoint.pt").to(device)
 
     batch = model.text_to_batch([
-        "Facebook is showing information to help you better understand the purpose of this event."
+        "Facebook is showing information to help you better understand the purpose of this event.",
+        "I'm happy 10% ~~~~~~~~~~~~~~ (*&*())."
     ], device, args.symbol_set, args.text_cleaners)
 
     waveglow = load_waveglow(device)

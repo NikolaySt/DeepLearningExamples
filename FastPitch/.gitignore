@@ -4,13 +4,3 @@ pretrained_models/
 output*
 scripts_joc/
 tests/
-
-*.pyc
-__pycache__
-
-.idea/
-.DS_Store
-
-*.swp
-*.swo
-*.swn

@@ -30,7 +30,9 @@ from typing import List, Optional
 import torch
 from torch import nn as nn
 from torch.nn.utils.rnn import pad_sequence
-
+import sys
+from os.path import abspath, dirname
+sys.path.append(abspath(dirname(__file__)+'/../../'))
 from common.layers import ConvReLUNorm
 from fastpitch.transformer_jit import FFTransformer
 

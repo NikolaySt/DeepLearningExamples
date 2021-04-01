@@ -31,7 +31,7 @@ from torch.nn.utils.rnn import pad_sequence
 import sys
 from os.path import abspath, dirname
 # enabling modules discovery from global entrypoint
-sys.path.append(abspath(dirname(__file__)+'/../'))
+sys.path.append(abspath(dirname(__file__)+'/../../'))
 from common.layers import ConvReLUNorm
 from fastpitch.transformer import FFTransformer
 

@@ -34,7 +34,7 @@ from torch import nn
 from torch.nn import functional as F
 
 # enabling modules discovery from global entrypoint
-sys.path.append(abspath(dirname(__file__)+'/../'))
+sys.path.append(abspath(dirname(__file__)+'/../../'))
 from common.layers import ConvNorm, LinearNorm
 from common.utils import mask_from_lens, to_gpu
 

@@ -53,6 +53,14 @@ def batchnorm_to_float(module):
         batchnorm_to_float(child)
     return module
 
+def lstmcell_to_float(module):
+    """Converts LSTMCells modules to FP32"""
+    if isinstance(module, torch.nn.LSTMCell):
+        module.float()
+    for child in module.children():
+        lstmcell_to_float(child)
+    return module    
+
 
 def init_bn(module):
     if isinstance(module, torch.nn.modules.batchnorm._BatchNorm):
