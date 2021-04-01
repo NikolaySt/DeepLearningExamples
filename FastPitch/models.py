@@ -33,6 +33,7 @@ import torch
 
 # enabling modules discovery from global entrypoint
 sys.path.append(abspath(dirname(__file__)+'/'))
+sys.path.append(abspath(dirname(__file__)+'/../'))
 from fastpitch.model import FastPitch as _FastPitch
 from fastpitch.model_jit import FastPitch as _FastPitchJIT
 from tacotron2.model import Tacotron2

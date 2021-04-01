@@ -45,6 +45,9 @@ from torch.nn.parameter import Parameter
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
+import sys
+from os.path import abspath, dirname
+sys.path.append(abspath(dirname(__file__)+'/../'))
 import common.tb_dllogger as logger
 from apex import amp
 from apex.optimizers import FusedAdam, FusedLAMB
