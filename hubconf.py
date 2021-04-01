@@ -233,6 +233,9 @@ def nvidia_tacotron2(pretrained=True, **kwargs):
         m.load_state_dict(state_dict)
 
     m.text_to_batch = _text_to_batch
+    m.denoiser = _denoiser
+    m.text_to_batch = _text_to_batch
+    m.post_process = _post_process    
 
     return m
 
