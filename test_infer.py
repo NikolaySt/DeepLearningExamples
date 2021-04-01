@@ -2,7 +2,13 @@ import torch
 from scipy.io.wavfile import write
 from hubconf import nvidia_tacotron2, nvidia_fastpitch, nvidia_waveglow
 
-device = 'cpu'
+
+def get_device():
+    return torch.device("cuda") if torch.cuda.is_available() else torch.device(
+        "cpu")
+
+
+device = get_device()
 waveglow = nvidia_waveglow()
 
 waveglow = waveglow.remove_weightnorm(waveglow)
@@ -42,7 +48,7 @@ write("f_audio.wav", sampling_rate, audio_data)
 torch.cuda.empty_cache()
 
 with torch.no_grad():
-    mel, mel_lens, *_  = tacotron2.infer(batch['text'], batch['text_lens'])
+    mel, mel_lens, *_ = tacotron2.infer(batch['text'], batch['text_lens'])
     audios = waveglow.infer(mel)
     audios = denoiser(audios.float(), strength=0.01).squeeze(1)
     audio_data = audios[0].data.cpu().numpy()
