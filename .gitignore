@@ -1,4 +1,16 @@
+*.pyc
+/**/__pycache__
+
+.idea/
+.DS_Store
+
+*.swp
+*.swo
+*.swn
+
 repos.cfg
 repos_init.cfg
 nvtool*
 .vscode
+/*.wav
+*.pyc
