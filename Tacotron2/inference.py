@@ -25,6 +25,12 @@
 #
 # *****************************************************************************
 
+import sys
+from os.path import abspath, dirname
+# enabling comman discovery
+sys.path.append(abspath(dirname(__file__)+'/../'))
+sys.path.append(abspath(dirname(__file__)+'./../'))
+
 from tacotron2.text import text_to_sequence
 import models
 import torch

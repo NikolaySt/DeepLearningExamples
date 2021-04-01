@@ -27,6 +27,11 @@
 import torch
 from torch.autograd import Variable
 import torch.nn.functional as F
+import sys
+from os.path import abspath, dirname
+# enabling comman discovery
+sys.path.append(abspath(dirname(__file__)+'/../../'))
+sys.path.append(abspath(dirname(__file__)+'./../../'))
 
 
 @torch.jit.script

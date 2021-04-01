@@ -25,6 +25,12 @@
 #
 # *****************************************************************************
 
+import sys
+from os.path import abspath, dirname
+# enabling comman discovery
+sys.path.append(abspath(dirname(__file__)+'/../'))
+sys.path.append(abspath(dirname(__file__)+'./../'))
+
 import os
 import time
 import argparse
