@@ -30,7 +30,11 @@ import numpy as np
 
 import torch
 import torch.utils.data
-
+import sys
+from os.path import abspath, dirname
+# enabling comman discovery
+sys.path.append(abspath(dirname(__file__)+'/../../'))
+sys.path.append(abspath(dirname(__file__)+'./../../'))
 import common.layers as layers
 from common.utils import load_wav_to_torch, load_filepaths_and_text, to_gpu
 
