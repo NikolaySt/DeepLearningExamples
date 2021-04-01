@@ -6,12 +6,6 @@ import os
 import sys
 from types import SimpleNamespace
 
-from FastPitch import models
-from FastPitch.common.text.text_processing import TextProcessing
-from FastPitch.pitch_transform import pitch_transform_custom
-from FastPitch.waveglow.denoiser import Denoiser
-
-
 def _load_checkpoint(path):
     ckpt = torch.load(path, map_location="cpu")
     state_dict = ckpt['state_dict']
@@ -26,10 +20,12 @@ def _text_to_batch(lines,
                    symbol_set="english_basic",
                    text_cleaners=["english_cleaners"],
                    batch_size=128):
+    
+    from common.text.text_processing import TextProcessing                   
+
     columns = ['text']
     fields = [lines]
-    fields = {c: f for c, f in zip(columns, fields)}
-
+    fields = {c: f for c, f in zip(columns, fields)}    
     tp = TextProcessing(symbol_set, text_cleaners)
 
     fields['text'] = [
@@ -63,6 +59,7 @@ def _build_pitch_transformation(custom=False,
     if custom:
 
         def custom_(pitch, pitch_lens, mean, std):
+            from FastPitch.pitch_transform import pitch_transform_custom
             return (pitch_transform_custom(pitch * std + mean, pitch_lens) -
                     mean) / std
 
@@ -85,6 +82,7 @@ def _denoiser(waveglow,
               n_overlap=4,
               win_length=1024,
               mode='zeros'):
+    from FastPitch.waveglow.denoiser import Denoiser
     denoiser = Denoiser(waveglow, filter_length, n_overlap, win_length, mode)
     return denoiser
 
@@ -146,6 +144,9 @@ def _download_checkpoint(checkpoint, force_reload):
 
 
 def nvidia_fastpitch(device, checkpoint_path=None, symbol_set="english_basic"):
+    
+    from FastPitch import models
+
     if checkpoint_path == None:
         url = 'https://orionscloud.blob.core.windows.net/bb1e7e62-03a5-4d90-b15a-abb60ad55250/Checkpoints/nvidia_fastpitch_fp16_20210323.pt'
         checkpoint_path = _download_checkpoint(checkpoint=url,
@@ -172,3 +173,116 @@ def nvidia_fastpitch(device, checkpoint_path=None, symbol_set="english_basic"):
     fastpitch.build_pitch_transformation = _build_pitch_transformation
 
     return fastpitch
+
+
+def nvidia_tacotron2(pretrained=True, **kwargs):
+    """Constructs a Tacotron 2 model (nn.module with additional infer(input) method).
+    For detailed information on model input and output, training recipies, inference and performance
+    visit: github.com/NVIDIA/DeepLearningExamples and/or ngc.nvidia.com
+
+    Args (type[, default value]):
+        pretrained (bool, True): If True, returns a model pretrained on LJ Speech dataset.
+        model_math (str, 'fp32'): returns a model in given precision ('fp32' or 'fp16')
+        n_symbols (int, 148): Number of symbols used in a sequence passed to the prenet, see
+                              https://github.com/NVIDIA/DeepLearningExamples/blob/master/PyTorch/SpeechSynthesis/Tacotron2/tacotron2/text/symbols.py
+        p_attention_dropout (float, 0.1): dropout probability on attention LSTM (1st LSTM layer in decoder)
+        p_decoder_dropout (float, 0.1): dropout probability on decoder LSTM (2nd LSTM layer in decoder)
+        max_decoder_steps (int, 1000): maximum number of generated mel spectrograms during inference
+    """
+
+    from Tacotron2.tacotron2 import model as tacotron2
+    from Tacotron2.models import lstmcell_to_float, batchnorm_to_float
+
+    fp16 = "model_math" in kwargs and kwargs["model_math"] == "fp16"
+    force_reload = "force_reload" in kwargs and kwargs["force_reload"]
+
+    if pretrained:
+        if fp16:
+            checkpoint = 'https://api.ngc.nvidia.com/v2/models/nvidia/tacotron2_pyt_ckpt_amp/versions/19.09.0/files/nvidia_tacotron2pyt_fp16_20190427'
+        else:
+            checkpoint = 'https://api.ngc.nvidia.com/v2/models/nvidia/tacotron2_pyt_ckpt_fp32/versions/19.09.0/files/nvidia_tacotron2pyt_fp32_20190427'
+        ckpt_file = _download_checkpoint(checkpoint, force_reload)
+        ckpt = torch.load(ckpt_file, map_location='cpu')
+        state_dict = ckpt['state_dict']
+        if _checkpoint_from_distributed(state_dict):
+            state_dict = _unwrap_distributed(state_dict)
+        config = ckpt['config']
+    else:
+        config = {'mask_padding': False, 'n_mel_channels': 80, 'n_symbols': 148,
+                  'symbols_embedding_dim': 512, 'encoder_kernel_size': 5,
+                  'encoder_n_convolutions': 3, 'encoder_embedding_dim': 512,
+                  'attention_rnn_dim': 1024, 'attention_dim': 128,
+                  'attention_location_n_filters': 32,
+                  'attention_location_kernel_size': 31, 'n_frames_per_step': 1,
+                  'decoder_rnn_dim': 1024, 'prenet_dim': 256,
+                  'max_decoder_steps': 1000, 'gate_threshold': 0.5,
+                  'p_attention_dropout': 0.1, 'p_decoder_dropout': 0.1,
+                  'postnet_embedding_dim': 512, 'postnet_kernel_size': 5,
+                  'postnet_n_convolutions': 5, 'decoder_no_early_stopping': False}
+        for k,v in kwargs.items():
+            if k in config.keys():
+                config[k] = v
+
+    m = tacotron2.Tacotron2(**config)
+
+    if fp16:
+        m = batchnorm_to_float(m.half())
+        m = lstmcell_to_float(m)
+
+    if pretrained:
+        m.load_state_dict(state_dict)
+
+    m.text_to_batch = _text_to_batch
+
+    return m
+
+
+def nvidia_waveglow(pretrained=True, **kwargs):
+    """Constructs a WaveGlow model (nn.module with additional infer(input) method).
+    For detailed information on model input and output, training recipies, inference and performance
+    visit: github.com/NVIDIA/DeepLearningExamples and/or ngc.nvidia.com
+
+    Args:
+        pretrained (bool): If True, returns a model pretrained on LJ Speech dataset.
+        model_math (str, 'fp32'): returns a model in given precision ('fp32' or 'fp16')
+    """
+
+    from Tacotron2.waveglow import model as waveglow
+    from Tacotron2.models import batchnorm_to_float
+
+    fp16 = "model_math" in kwargs and kwargs["model_math"] == "fp16"
+    force_reload = "force_reload" in kwargs and kwargs["force_reload"]
+
+    if pretrained:
+        if fp16:
+            checkpoint = 'https://api.ngc.nvidia.com/v2/models/nvidia/waveglow_ckpt_amp/versions/19.09.0/files/nvidia_waveglowpyt_fp16_20190427'
+        else:
+            checkpoint = 'https://api.ngc.nvidia.com/v2/models/nvidia/waveglow_ckpt_fp32/versions/19.09.0/files/nvidia_waveglowpyt_fp32_20190427'
+        ckpt_file = _download_checkpoint(checkpoint, force_reload)
+        ckpt = torch.load(ckpt_file, map_location='cpu')
+        state_dict = ckpt['state_dict']
+        if _checkpoint_from_distributed(state_dict):
+            state_dict = _unwrap_distributed(state_dict)
+        config = ckpt['config']
+    else:
+        config = {'n_mel_channels': 80, 'n_flows': 12, 'n_group': 8,
+                  'n_early_every': 4, 'n_early_size': 2,
+                  'WN_config': {'n_layers': 8, 'kernel_size': 3,
+                                'n_channels': 512}}
+        for k,v in kwargs.items():
+            if k in config.keys():
+                config[k] = v
+            elif k in config['WN_config'].keys():
+                config['WN_config'][k] = v
+
+    m = waveglow.WaveGlow(**config)
+
+    if fp16:
+        m = batchnorm_to_float(m.half())
+        for mat in m.convinv:
+            mat.float()
+
+    if pretrained:
+        m.load_state_dict(state_dict)
+
+    return m
