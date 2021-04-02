@@ -4,7 +4,7 @@ import numpy as np
 import urllib.request
 import os
 import sys
-from types import SimpleNamespace
+
 
 def _load_checkpoint(path):
     ckpt = torch.load(path, map_location="cpu")
@@ -20,12 +20,12 @@ def _text_to_batch(lines,
                    symbol_set="english_basic",
                    text_cleaners=["english_cleaners"],
                    batch_size=128):
-    
-    from common.text.text_processing import TextProcessing                   
+
+    from common.text.text_processing import TextProcessing
 
     columns = ['text']
     fields = [lines]
-    fields = {c: f for c, f in zip(columns, fields)}    
+    fields = {c: f for c, f in zip(columns, fields)}
     tp = TextProcessing(symbol_set, text_cleaners)
 
     fields['text'] = [
@@ -143,36 +143,91 @@ def _download_checkpoint(checkpoint, force_reload):
     return ckpt_file
 
 
-def nvidia_fastpitch(device, checkpoint_path=None, symbol_set="english_basic"):
-    
+def nvidia_fastpitch(pretrained=True, **kwargs):
+    """Constructs a FastPitch  model (nn.module with additional infer(input) method).
+    For detailed information on model input and output, training recipies, inference and performance
+    visit: github.com/NVIDIA/DeepLearningExamples and/or ngc.nvidia.com
+
+    Args (type[, default value]):
+        pretrained (bool, True): If True, returns a model pretrained on LJ Speech dataset.
+        model_math (str, 'fp32'): returns a model in given precision ('fp32' or 'fp16')
+    """
+
     from FastPitch import models
+    from types import SimpleNamespace 
 
-    if checkpoint_path == None:
-        url = 'https://orionscloud.blob.core.windows.net/bb1e7e62-03a5-4d90-b15a-abb60ad55250/Checkpoints/nvidia_fastpitch_fp16_20210323.pt'
-        checkpoint_path = _download_checkpoint(checkpoint=url,
-                                               force_reload=False)
+    fp16 = "model_math" in kwargs and kwargs["model_math"] == "fp16"
+    force_reload = "force_reload" in kwargs and kwargs["force_reload"]
 
-    state_dict, checkpoint_config = _load_checkpoint(checkpoint_path)
-    fastpitch_arg = SimpleNamespace(**checkpoint_config)
-    fastpitch_arg.symbol_set = symbol_set
+    if pretrained:
+        if fp16:
+            checkpoint = 'https://orionscloud.blob.core.windows.net/bb1e7e62-03a5-4d90-b15a-abb60ad55250/Checkpoints/nvidia_fastpitch_fp16_20210323.pt'
+        else:
+            raise Exception("pretrained model is available only for fp16. Set a param model_math=fp16.")
+        ckpt_file = _download_checkpoint(checkpoint, force_reload)
+        state_dict, config = _load_checkpoint(ckpt_file)
+    else:
+        config = {
+            "n_speakers": 1,
+            "symbol_set": "english_basic",
+            "n_mel_channels": 80,
+            "max_seq_len": 2048,
+            "n_symbols": 148,
+            "padding_idx": 0,
+            "symbols_embedding_dim": 384,
+            "in_fft_n_layers": 6,
+            "in_fft_n_heads": 1,
+            "in_fft_d_head": 64,
+            "in_fft_conv1d_kernel_size": 3,
+            "in_fft_conv1d_filter_size": 1536,
+            "in_fft_output_size": 384,
+            "p_in_fft_dropout": 0.1,
+            "p_in_fft_dropatt": 0.1,
+            "p_in_fft_dropemb": 0.0,
+            "out_fft_n_layers": 6,
+            "out_fft_n_heads": 1,
+            "out_fft_d_head": 64,
+            "out_fft_conv1d_kernel_size": 3,
+            "out_fft_conv1d_filter_size": 1536,
+            "out_fft_output_size": 384,
+            "p_out_fft_dropout": 0.1,
+            "p_out_fft_dropatt": 0.1,
+            "p_out_fft_dropemb": 0.0,
+            "dur_predictor_kernel_size": 3,
+            "dur_predictor_filter_size": 256,
+            "p_dur_predictor_dropout": 0.1,
+            "dur_predictor_n_layers": 2,
+            "pitch_predictor_kernel_size": 3,
+            "pitch_predictor_filter_size": 256,
+            "p_pitch_predictor_dropout": 0.1,
+            "pitch_predictor_n_layers": 2,
+            "pitch_embedding_kernel_size": 3,
+            "speaker_emb_weight": 1.0
+        }
+        for k, v in kwargs.items():
+            if k in config.keys():
+                config[k] = v
 
-    model_config = models.get_model_config("FastPitch", fastpitch_arg)
+    if not "symbol_set" in config.keys():
+        config["symbol_set"] = "english_basic"
 
-    fastpitch = models.get_model("FastPitch",
-                                 model_config,
-                                 device,
-                                 forward_is_infer=True,
-                                 jitable=False)
+    config_args = SimpleNamespace(**config)
+    model_config = models.get_model_config("FastPitch", config_args)
 
-    status = ' ' + str(fastpitch.load_state_dict(state_dict, strict=True))
-    print(f'Loaded {checkpoint_path} {status}')
+    m = models.get_model("FastPitch",
+                         model_config,
+                         forward_is_infer=False,
+                         jitable=False)
 
-    fastpitch.denoiser = _denoiser
-    fastpitch.text_to_batch = _text_to_batch
-    fastpitch.post_process = _post_process
-    fastpitch.build_pitch_transformation = _build_pitch_transformation
+    if pretrained:
+        m.load_state_dict(state_dict, strict=True)
 
-    return fastpitch
+    m.denoiser = _denoiser
+    m.text_to_batch = _text_to_batch
+    m.post_process = _post_process
+    m.build_pitch_transformation = _build_pitch_transformation
+
+    return m
 
 
 def nvidia_tacotron2(pretrained=True, **kwargs):
@@ -202,24 +257,33 @@ def nvidia_tacotron2(pretrained=True, **kwargs):
         else:
             checkpoint = 'https://api.ngc.nvidia.com/v2/models/nvidia/tacotron2_pyt_ckpt_fp32/versions/19.09.0/files/nvidia_tacotron2pyt_fp32_20190427'
         ckpt_file = _download_checkpoint(checkpoint, force_reload)
-        ckpt = torch.load(ckpt_file, map_location='cpu')
-        state_dict = ckpt['state_dict']
-        if _checkpoint_from_distributed(state_dict):
-            state_dict = _unwrap_distributed(state_dict)
-        config = ckpt['config']
+        state_dict, config = _load_checkpoint(ckpt_file)
     else:
-        config = {'mask_padding': False, 'n_mel_channels': 80, 'n_symbols': 148,
-                  'symbols_embedding_dim': 512, 'encoder_kernel_size': 5,
-                  'encoder_n_convolutions': 3, 'encoder_embedding_dim': 512,
-                  'attention_rnn_dim': 1024, 'attention_dim': 128,
-                  'attention_location_n_filters': 32,
-                  'attention_location_kernel_size': 31, 'n_frames_per_step': 1,
-                  'decoder_rnn_dim': 1024, 'prenet_dim': 256,
-                  'max_decoder_steps': 1000, 'gate_threshold': 0.5,
-                  'p_attention_dropout': 0.1, 'p_decoder_dropout': 0.1,
-                  'postnet_embedding_dim': 512, 'postnet_kernel_size': 5,
-                  'postnet_n_convolutions': 5, 'decoder_no_early_stopping': False}
-        for k,v in kwargs.items():
+        config = {
+            'mask_padding': False,
+            'n_mel_channels': 80,
+            'n_symbols': 148,
+            'symbols_embedding_dim': 512,
+            'encoder_kernel_size': 5,
+            'encoder_n_convolutions': 3,
+            'encoder_embedding_dim': 512,
+            'attention_rnn_dim': 1024,
+            'attention_dim': 128,
+            'attention_location_n_filters': 32,
+            'attention_location_kernel_size': 31,
+            'n_frames_per_step': 1,
+            'decoder_rnn_dim': 1024,
+            'prenet_dim': 256,
+            'max_decoder_steps': 1000,
+            'gate_threshold': 0.5,
+            'p_attention_dropout': 0.1,
+            'p_decoder_dropout': 0.1,
+            'postnet_embedding_dim': 512,
+            'postnet_kernel_size': 5,
+            'postnet_n_convolutions': 5,
+            'decoder_no_early_stopping': False
+        }
+        for k, v in kwargs.items():
             if k in config.keys():
                 config[k] = v
 
@@ -235,7 +299,7 @@ def nvidia_tacotron2(pretrained=True, **kwargs):
     m.text_to_batch = _text_to_batch
     m.denoiser = _denoiser
     m.text_to_batch = _text_to_batch
-    m.post_process = _post_process    
+    m.post_process = _post_process
 
     return m
 
@@ -262,17 +326,21 @@ def nvidia_waveglow(pretrained=True, **kwargs):
         else:
             checkpoint = 'https://api.ngc.nvidia.com/v2/models/nvidia/waveglow_ckpt_fp32/versions/19.09.0/files/nvidia_waveglowpyt_fp32_20190427'
         ckpt_file = _download_checkpoint(checkpoint, force_reload)
-        ckpt = torch.load(ckpt_file, map_location='cpu')
-        state_dict = ckpt['state_dict']
-        if _checkpoint_from_distributed(state_dict):
-            state_dict = _unwrap_distributed(state_dict)
-        config = ckpt['config']
+        state_dict, config = _load_checkpoint(ckpt_file)
     else:
-        config = {'n_mel_channels': 80, 'n_flows': 12, 'n_group': 8,
-                  'n_early_every': 4, 'n_early_size': 2,
-                  'WN_config': {'n_layers': 8, 'kernel_size': 3,
-                                'n_channels': 512}}
-        for k,v in kwargs.items():
+        config = {
+            'n_mel_channels': 80,
+            'n_flows': 12,
+            'n_group': 8,
+            'n_early_every': 4,
+            'n_early_size': 2,
+            'WN_config': {
+                'n_layers': 8,
+                'kernel_size': 3,
+                'n_channels': 512
+            }
+        }
+        for k, v in kwargs.items():
             if k in config.keys():
                 config[k] = v
             elif k in config['WN_config'].keys():
