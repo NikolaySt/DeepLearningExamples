@@ -319,7 +319,8 @@ def main():
 
     device = torch.device('cuda' if args.cuda else 'cpu')
     model_config = models.get_model_config('FastPitch', args)
-    model = models.get_model('FastPitch', model_config, device)
+    model = models.get_model('FastPitch', model_config)
+    model = model.to(device)
 
     # Store pitch mean/std as params to translate from Hz during inference
     with open(args.pitch_mean_std_file, 'r') as f:

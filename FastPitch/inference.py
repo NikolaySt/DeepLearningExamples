@@ -136,10 +136,10 @@ def load_and_setup_model(model_name, parser, checkpoint, amp, device,
 
     model_config = models.get_model_config(model_name, model_args)
 
-    model = models.get_model(model_name, model_config, device,
+    model = models.get_model(model_name, model_config,
                              forward_is_infer=forward_is_infer,
                              jitable=jitable)
-
+    model = model.to(device)
     if checkpoint is not None:
         checkpoint_data = torch.load(checkpoint, map_location = device)
         status = ''
