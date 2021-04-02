@@ -31,7 +31,7 @@ from torch.nn.utils.rnn import pad_sequence
 import sys
 from os.path import abspath, dirname
 # enabling modules discovery from global entrypoint
-sys.path.append(abspath(dirname(__file__)+'/../../'))
+sys.path.append(abspath(dirname(__file__) + '/../../'))
 from common.layers import ConvReLUNorm
 from fastpitch.transformer import FFTransformer
 
@@ -41,9 +41,9 @@ def regulate_len(durations, enc_out, pace=1.0, mel_max_len=None):
     reps = torch.round(durations.float() / pace).long()
     dec_lens = reps.sum(dim=1)
 
-    enc_rep = pad_sequence([torch.repeat_interleave(o, r, dim=0)
-                            for o, r in zip(enc_out, reps)],
-                           batch_first=True)
+    enc_rep = pad_sequence(
+        [torch.repeat_interleave(o, r, dim=0) for o, r in zip(enc_out, reps)],
+        batch_first=True)
     if mel_max_len:
         enc_rep = enc_rep[:, :mel_max_len]
         dec_lens = torch.clamp_max(dec_lens, mel_max_len)
@@ -235,7 +235,7 @@ class FastPitch(nn.Module):
                 mean, std = self.pitch_mean[0], self.pitch_std[0]
             pitch_pred = pitch_transform(pitch_pred, enc_mask.sum(dim=(1, 2)),
                                          mean, std)
-
+                                         
         if pitch_tgt is None:
             pitch_emb = self.pitch_emb(pitch_pred.unsqueeze(1)).transpose(1, 2)
         else:
