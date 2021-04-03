@@ -41,7 +41,7 @@ def fastpitch_infer(output_filename="f_audio.wav",
                     pitch=None,
                     pitch_transform=None):
     gen_kw = {
-        'pace': 2.0,
+        'pace': 1.0,
         'speaker': 0,
         'pitch_tgt': pitch,
         'pitch_transform': pitch_transform
@@ -88,7 +88,7 @@ def get_custom_pitch(length, keypoints):
 #fastpitch_infer("f_audio_1.wav",
 #                pitch_transform=fastpitch.build_pitch_transformation())
 
-pitch = get_custom_pitch(88, np.array([1, 0.2, 0.3, 0, 0]))
-fastpitch_infer("f_audio_2.wav", pitch=pitch)
+pitch = get_custom_pitch(88, np.array([-1, -1, -1, -1, -1]))
+fastpitch_infer("f_audio_2.wav")
 
 #tacotron_infer()
