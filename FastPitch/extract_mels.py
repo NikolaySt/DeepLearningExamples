@@ -37,6 +37,10 @@ import numpy as np
 from dllogger import StdOutBackend, JSONStreamBackend, Verbosity
 from torch.utils.data import DataLoader
 
+import sys
+from os.path import abspath, dirname
+# enabling comman discovery
+sys.path.append(abspath(dirname(__file__)+'./../'))
 from common import utils
 from inference import load_and_setup_model
 from tacotron2.data_function import TextMelLoader, TextMelCollate, batch_to_gpu
