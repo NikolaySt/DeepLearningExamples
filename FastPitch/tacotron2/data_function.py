@@ -69,7 +69,7 @@ class TextMelLoader(torch.utils.data.Dataset):
             audio, sampling_rate = load_wav_to_torch(filename)
             if sampling_rate != self.stft.sampling_rate:
                 raise ValueError(
-                    f"{sampling_rate} sampling rate doesn't match target {self.stft.sampling_rate} sampling rate."
+                    f"File {filename} with {sampling_rate} sampling rate doesn't match target {self.stft.sampling_rate} sampling rate."
                 )
             audio_norm = audio / self.max_wav_value
             audio_norm = audio_norm.unsqueeze(0)
