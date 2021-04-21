@@ -33,10 +33,11 @@ import torch.utils.data
 import sys
 from os.path import abspath, dirname
 # enabling comman discovery
-sys.path.append(abspath(dirname(__file__)+'/../../'))
-sys.path.append(abspath(dirname(__file__)+'./../../'))
+sys.path.append(abspath(dirname(__file__) + '/../../'))
+sys.path.append(abspath(dirname(__file__) + './../../'))
 import common.layers as layers
 from common.utils import load_wav_to_torch, load_filepaths_and_text, to_gpu
+
 
 class TextMelLoader(torch.utils.data.Dataset):
     """
@@ -44,30 +45,36 @@ class TextMelLoader(torch.utils.data.Dataset):
         2) normalizes text and converts them to sequences of one-hot vectors
         3) computes mel-spectrograms from audio files.
     """
-    def __init__(self, dataset_path, audiopaths_and_text, args, load_mel_from_disk=True):
+    def __init__(self,
+                 dataset_path,
+                 audiopaths_and_text,
+                 args,
+                 load_mel_from_disk=True):
         self.audiopaths_and_text = load_filepaths_and_text(
-            dataset_path, audiopaths_and_text,
+            dataset_path,
+            audiopaths_and_text,
             has_speakers=(args.n_speakers > 1))
         self.load_mel_from_disk = load_mel_from_disk
         if not load_mel_from_disk:
             self.max_wav_value = args.max_wav_value
             self.sampling_rate = args.sampling_rate
-            self.stft = layers.TacotronSTFT(
-                args.filter_length, args.hop_length, args.win_length,
-                args.n_mel_channels, args.sampling_rate, args.mel_fmin,
-                args.mel_fmax)
+            self.stft = layers.TacotronSTFT(args.filter_length,
+                                            args.hop_length, args.win_length,
+                                            args.n_mel_channels,
+                                            args.sampling_rate, args.mel_fmin,
+                                            args.mel_fmax)
 
     def get_mel(self, filename):
         if not self.load_mel_from_disk:
             audio, sampling_rate = load_wav_to_torch(filename)
-            print(sampling_rate)
-            print(self.stft.sampling_rate)
             if sampling_rate != self.stft.sampling_rate:
-                raise ValueError("{} {} SR doesn't match target {} SR".format(
-                    sampling_rate, self.stft.sampling_rate))
+                raise ValueError(
+                    f"{sampling_rate} sampling rate doesn't match target {self.stft.sampling_rate} sampling rate."
+                )
             audio_norm = audio / self.max_wav_value
             audio_norm = audio_norm.unsqueeze(0)
-            audio_norm = torch.autograd.Variable(audio_norm, requires_grad=False)
+            audio_norm = torch.autograd.Variable(audio_norm,
+                                                 requires_grad=False)
             melspec = self.stft.mel_spectrogram(audio_norm)
             melspec = torch.squeeze(melspec, 0)
         else:
@@ -107,9 +114,10 @@ class TextMelCollate():
         batch: [text_normalized, mel_normalized]
         """
         # Right zero-pad all one-hot text sequences to max input length
-        input_lengths, ids_sorted_decreasing = torch.sort(
-            torch.LongTensor([len(x[0]) for x in batch]),
-            dim=0, descending=True)
+        input_lengths, ids_sorted_decreasing = torch.sort(torch.LongTensor(
+            [len(x[0]) for x in batch]),
+                                                          dim=0,
+                                                          descending=True)
         max_input_len = input_lengths[0]
 
         text_padded = torch.LongTensor(len(batch), max_input_len)
@@ -134,7 +142,7 @@ class TextMelCollate():
         for i in range(len(ids_sorted_decreasing)):
             mel = batch[ids_sorted_decreasing[i]][1]
             mel_padded[i, :, :mel.size(1)] = mel
-            gate_padded[i, mel.size(1)-1:] = 1
+            gate_padded[i, mel.size(1) - 1:] = 1
             output_lengths[i] = mel.size(1)
 
         # count number of items - characters in text
