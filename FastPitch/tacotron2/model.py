@@ -391,7 +391,10 @@ class Decoder(nn.Module):
         # (T_out, B) -> (B, T_out)
 
         # TODO Figure out why it throws an error for 48000 sampling rate audio
-        #gate_outputs = gate_outputs.transpose(0, 1).contiguous()
+        try:
+            gate_outputs = gate_outputs.transpose(0, 1).contiguous()
+        except:
+            pass
 
         # (T_out, B, n_mel_channels) -> (B, T_out, n_mel_channels)
         mel_outputs = mel_outputs.transpose(0, 1).contiguous()
