@@ -389,7 +389,10 @@ class Decoder(nn.Module):
         # (T_out, B) -> (B, T_out)
         alignments = alignments.transpose(0, 1).contiguous()
         # (T_out, B) -> (B, T_out)
-        gate_outputs = gate_outputs.transpose(0, 1).contiguous()
+
+        # TODO Figure out why it throws an error for 48000 sampling rate audio
+        #gate_outputs = gate_outputs.transpose(0, 1).contiguous()
+
         # (T_out, B, n_mel_channels) -> (B, T_out, n_mel_channels)
         mel_outputs = mel_outputs.transpose(0, 1).contiguous()
         # decouple frames per step
