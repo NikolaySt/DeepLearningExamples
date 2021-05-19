@@ -367,8 +367,12 @@ def main():
                         start_iter, model_config, args.amp, ch_fpath,
                         args.world_size)
 
-    start_epoch = start_epoch[0]
-    total_iter = start_iter[0]
+    # retrain and start from initial position everytime
+    start_epoch = 1
+    total_iter = 0
+    # Start from previous position
+    #start_epoch = start_epoch[0]
+    #total_iter = start_iter[0]
 
     criterion = loss_functions.get_loss_function('FastPitch',
         dur_predictor_loss_scale=args.dur_predictor_loss_scale,
