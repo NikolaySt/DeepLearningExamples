@@ -204,11 +204,17 @@ def load_checkpoint(local_rank, model, ema_model, optimizer, epoch, total_iter,
     getattr(model, 'module', model).load_state_dict(sd)
     optimizer.load_state_dict(checkpoint['optimizer'])
 
-    if amp_run:
-        amp.load_state_dict(checkpoint['amp'])
+    try:
+        if amp_run:
+            amp.load_state_dict(checkpoint['amp'])
+    except:
+        pass
 
-    if ema_model is not None:
-        ema_model.load_state_dict(checkpoint['ema_state_dict'])
+    try:
+        if ema_model is not None:
+            ema_model.load_state_dict(checkpoint['ema_state_dict'])
+    except:
+        pass
 
 
 def validate(model, epoch, total_iter, criterion, valset, batch_size,
