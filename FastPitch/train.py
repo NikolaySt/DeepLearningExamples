@@ -191,13 +191,12 @@ def save_checkpoint(local_rank, model, ema_model, optimizer, epoch, total_iter,
 
 
 def load_checkpoint(local_rank, model, ema_model, optimizer, epoch, total_iter,
-                    config, amp_run, filepath, world_size):
+                    amp_run, filepath):
     if local_rank == 0:
         print(f'Loading model and optimizer state from {filepath}')
     checkpoint = torch.load(filepath, map_location='cpu')
     epoch[0] = checkpoint['epoch'] + 1
     total_iter[0] = checkpoint['iteration']
-    config = checkpoint['config']
 
     sd = {k.replace('module.', ''): v
           for k, v in checkpoint['state_dict'].items()}
@@ -370,15 +369,11 @@ def main():
 
     if ch_fpath is not None:
         load_checkpoint(args.local_rank, model, ema_model, optimizer, start_epoch,
-                        start_iter, model_config, args.amp, ch_fpath,
-                        args.world_size)
+                        start_iter, args.amp, ch_fpath)
 
     # retrain and start from initial position everytime
     start_epoch = 1
     total_iter = 0
-    # Start from previous position
-    #start_epoch = start_epoch[0]
-    #total_iter = start_iter[0]
 
     criterion = loss_functions.get_loss_function('FastPitch',
         dur_predictor_loss_scale=args.dur_predictor_loss_scale,
